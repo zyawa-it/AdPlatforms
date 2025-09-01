@@ -13,44 +13,41 @@ public class PlatformService : IPlatformService
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
-                while ((line = await reader.ReadLineAsync()) != null)
+                // Пропуск пустых или содержащих только пробелы строк
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                // Делим строку по первому ':' на 2 части
+                var split = line.Split(':', 2);
+
+                // Если не получилось 2 части - пропускаем строку (invalid format)
+                if (split.Length != 2) continue;
+
+                // Получение имя и блок локаций без пробелов
+                var platformName = split[0].Trim();
+                var locationPart = split[1].Trim();
+
+                // Если имя или локации пустые - пропускаем
+                if (string.IsNullOrEmpty(platformName) ||
+                    string.IsNullOrEmpty(locationPart)) continue;
+
+                // Разделения блока локаций по запятым
+                var locations = locationPart.Split(',');
+
+                // Заполнение словаря
+                foreach (var location in locations)
                 {
-                    // Пропуск пустых или содержащих только пробелы строк
-                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var trimmedLocation = location.Trim();
+                    if (string.IsNullOrEmpty(trimmedLocation)) continue;
 
-                    // Делим строку по первому ':' на 2 части
-                    var split = line.Split(':', 2);
-
-                    // Если не получилось 2 части - пропускаем строку (invalid format)
-                    if (split.Length != 2) continue;
-
-                    // Получение имя и блок локаций без пробелов
-                    var platformName = split[0].Trim();
-                    var locationPart = split[1].Trim();
-
-                    // Если имя или локации пустые - пропускаем
-                    if (string.IsNullOrEmpty(platformName) ||
-                        string.IsNullOrEmpty(locationPart)) continue;
-
-                    // Разделения блока локаций по запятым
-                    var locations = locationPart.Split(',');
-
-                    // Заполнение словаря
-                    foreach (var location in locations)
+                    // Есть ли уже в словаре ключ с такой локацией
+                    if (!newLocationToPlatforms.ContainsKey(trimmedLocation))
                     {
-                        var trimmedLocation = location.Trim();
-                        if (string.IsNullOrEmpty(trimmedLocation)) continue;
-
-                        // Есть ли уже в словаре ключ с такой локацией
-                        if (!newLocationToPlatforms.ContainsKey(trimmedLocation))
-                        {
-                            // Если нет - создаем новый пустой список
-                            newLocationToPlatforms[trimmedLocation] = new List<string>();
-                        }
-
-                        // Добавляем имя в список для этой локации
-                        newLocationToPlatforms[trimmedLocation].Add(platformName);
+                        // Если нет - создаем новый пустой список
+                        newLocationToPlatforms[trimmedLocation] = new List<string>();
                     }
+
+                    // Добавляем имя в список для этой локации
+                    newLocationToPlatforms[trimmedLocation].Add(platformName);
                 }
             }
         }
